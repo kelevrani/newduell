@@ -1,0 +1,643 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1 charset=utf-8">
+<link rel="stylesheet" href="jquery.mobile-1.4.3.min.css">
+<script src="jquery-2.1.1.min.js"></script>
+<script src="jquery.mobile-1.4.3.min.js"></script>
+
+	<style type="text/css">
+
+	
+
+	
+	#play{
+	width:50%;
+	margin:0 auto;
+	margin-top:6em;
+	
+	
+	
+	}
+	
+	#myDiv{
+	width:350px;
+	margin:0 auto;
+	
+	
+	}
+	
+	#myDiv2{
+	width:350px;
+	margin:0 auto;
+	
+	
+	}
+	
+	.ui-content{
+	width:50%;
+	margin: 0 auto;
+	height:50%;
+    margin-top:50px;
+	
+	
+	}
+	
+	ul{
+	padding:0px;
+	text-align: center;
+	}
+	ul li {display:inline;
+	
+	}
+	ul li p{display:inline;
+	
+	}
+	
+	 
+	
+	#gamecontainer{
+	margin: 0 auto;
+	width: 100%;
+	margin-top:15em;
+	padding:0px;
+	
+	}
+	
+	#ich{
+	float:left;
+	
+	}
+	
+	#gegner{
+	float:right;
+	
+	}
+	
+	#gegnercon button{
+	
+	width: 80%;
+	text-align: center;
+	
+	
+	}
+	
+	#gegnercon{
+	
+	
+	text-align: center;
+	
+	
+	}
+	
+	
+	
+	
+	
+	</style>
+<script>
+  document.addEventListener("deviceready", onDeviceReady, false);
+                     function onDeviceReady() {   document.addEventListener("backbutton", backKeyDown, true);
+					 navigator.app.overrideBackbutton(true);
+					 function backKeyDown() {}
+                 }
+
+var punkte=0;
+var zaehler=1;
+var countdownstopper=false;
+
+if (localStorage.getItem('userauth')=== null){window.location.replace("#pageone");}
+
+else window.location.replace("#pagetwo");
+
+
+function loadgamecontainer(id){
+
+$.getJSON("http://hsduell2014.net84.net/gameconloader.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+id, function(data){
+
+if(data.gegner1==localStorage.userauth){
+
+$('#ich p').text(data.gegner1+'/punkte:'+data.punktegeg1);
+$('.runde p').text('Runde'+data.zaehler);
+$('#gegner p').text(data.gegner2+'/punkte:'+data.punktegeg2);
+document.getElementById("play").disabled = false;
+if (data.folge==1 || data.folge==2){document.getElementById("play").disabled = true;}
+
+
+}
+
+else if(data.gegner2==localStorage.userauth){
+
+$('#gegner p').text(data.gegner1+'/punkte:'+data.punktegeg1);
+$('.runde p').text('Runde'+data.zaehler);
+$('#ich p').text(data.gegner2+'/punkte:'+data.punktegeg2);
+document.getElementById("play").disabled = false;
+if (data.folge==0 || data.folge==3){document.getElementById("play").disabled = true;}
+
+}
+
+$('.runde').attr('id', id);
+$.mobile.navigate("#gamecontent",{transition:"flip", info:"barhash"});
+
+});
+
+
+
+
+}
+
+function pollinggegner(opID){
+
+$.getJSON("http://hsduell2014.net84.net/poller.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+opID, function(data){
+
+if (data.gegner2=='Leer'){
+
+pollinggegner(opID);}
+
+else {
+
+$('#'+opID).text(data.gegner2);}
+
+
+});
+
+
+}
+function countdown(a){
+
+if (!(countdownstopper)){
+$('.time').text(a);
+if (a==0){answercheck('false');}
+
+
+else setTimeout(function(){countdown(a-1)}, 1000);
+
+
+}
+
+else {
+		countdownstopper=false;
+		return 0;
+
+}
+}
+
+
+function countdowncheck(){
+
+var timer=10;
+countdown(timer);
+
+
+
+}
+
+function beimstart(){
+
+$.getJSON("http://hsduell2014.net84.net/buttonabfrage.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth, function(data){
+
+
+for (var i=0; i<data.length; i++){
+
+
+  if(data[i].gegner1==localStorage.userauth && data[i].gegner2==''){
+  
+  var txt2 = $('<button></button>').attr('id',data[i].opponent_ID);
+   $(txt2).text('Beliebiger Spieler!');
+   $(txt2).attr('onClick','loadgamecontainer($(this).attr("id"))');
+   $('#buttoncon #gegnercon').append(txt2);
+  
+  }
+
+  else if(data[i].gegner1==localStorage.userauth){
+   
+   var txt3 = $('<button></button>').attr('id',data[i].opponent_ID);
+   $(txt3).text(data[i].gegner2);
+   $(txt3).attr('onClick','loadgamecontainer($(this).attr("id"))');
+   $('#buttoncon #gegnercon').append(txt3);
+   
+   }
+   
+   else {
+   
+   var txt3 = $('<button></button>').attr('id',data[i].opponent_ID);
+   $(txt3).text(data[i].gegner1);
+   $(txt3).attr('onClick','loadgamecontainer($(this).attr("id"))');
+   $('#buttoncon #gegnercon').append(txt3);
+   
+   }
+   
+   
+   
+   
+   }
+   
+});
+
+
+
+  
+   
+   
+}
+
+function proof(){
+
+var username= $("#user").val();
+var password= $("#pass1").val();
+
+
+$.getJSON("http://hsduell2014.net84.net/UserProofing.php?callback=?&user="+username+"&pass="+password, function(data){
+   if (data.state=='False') {$(document).ready(function() {
+
+    $("#meldung").text('Username oder Passwort ist falsch!');
+	
+});
+$(document).ready(function(){$("#myPopup").popup("open");});
+}
+
+else if (data.state=='True') {
+			localStorage.userauth=data.user; 
+			localStorage.passauth=data.pass;
+			
+			window.location.replace("#pagetwo");
+			document.location.reload();
+			
+
+
+    }
+   
+});
+
+
+}
+
+function searchop(){
+
+$.getJSON("http://hsduell2014.net84.net/findopponent.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth, function(data){
+   
+   
+   
+   if (data.gegner1==localStorage.userauth) {
+   
+   localStorage.setItem('gegnerwarten', data.gegner1);
+   
+   var txt2 = $('<button></button>').attr('id',data.opponent_ID);
+   $(txt2).text('Beliebiger Spieler!');
+   $(txt2).attr('onClick','loadgamecontainer($(this).attr("id"))');
+   $('#buttoncon #gegnercon').append(txt2);
+   pollinggegner(data.opponent_ID);
+   
+   
+   
+   }
+   
+   
+   else if(data.gegner1=='Wait'){alert('Die Maximale Gegner Zahl ist ereicht');}
+   
+   else {
+   
+   
+   
+   
+   var txt2 = $('<button></button>').attr('id', data.opponent_ID);
+   $(txt2).text(data.gegner1);
+   $(txt2).attr('onClick','loadgamecontainer($(this).attr("id"))');
+   $('#buttoncon #gegnercon').append(txt2);
+   
+   
+   
+   
+   
+   
+   }
+
+   
+});
+
+}
+
+function spielen(id){
+
+
+ 
+$.getJSON("http://hsduell2014.net84.net/folgenpruefer.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+id, function(data){
+
+if (data.Folge=='Fragesuchen'){
+
+  fachaussucher(id);
+
+}
+
+else if (data.Folge=='Fragekriegen'){
+
+   fragenkrieger(id);
+
+}
+
+else if (data.Folge=='Warten'){
+
+ alert('wait');
+
+}
+     
+   
+});
+
+
+
+}
+function fragenkrieger(id){
+countdowncheck();
+$.getJSON("http://hsduell2014.net84.net/fragenkrieger.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+id, function(data){
+
+localStorage.setItem('fragen', JSON.stringify(data));
+for (i=0; i<data.length; i++){
+var frag=i+1;
+$('#frag'+frag).text(data[i].frage);
+}
+
+$('#fragencon1 #ant1').text(data[0].antwort1);
+$('#fragencon1 #ant2').text(data[0].antwort2);
+$('#fragencon1 #ant3').text(data[0].antwort3);
+$('#fragencon1 #ant4').text(data[0].antwort4);
+
+$('#fragencon2 #ant1').text(data[1].antwort1);
+$('#fragencon2 #ant2').text(data[1].antwort2);
+$('#fragencon2 #ant3').text(data[1].antwort3);
+$('#fragencon2 #ant4').text(data[1].antwort4);
+
+$('#fragencon3 #ant1').text(data[2].antwort1);
+$('#fragencon3 #ant2').text(data[2].antwort2);
+$('#fragencon3 #ant3').text(data[2].antwort3);
+$('#fragencon3 #ant4').text(data[2].antwort4);
+
+});
+localStorage.setItem('opponentid', id);
+$.mobile.changePage('#pagefour', {reverse: false, changeHash: false});
+}
+function fachaussucher(id){
+
+$.getJSON("http://hsduell2014.net84.net/fachsucher.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+id, function(data){
+
+for (var i=0; i<data.length; i++){
+	var num=i+1;
+	$('#fach'+num).text(data[i].Fach);
+	$('#fach'+num).attr('onClick','fragengeber($(this).text(),'+id+')');
+	
+	
+	}
+
+	$.mobile.changePage('#pagethree', {reverse: false, changeHash: false});
+});
+
+
+
+}
+function fragengeber(fach, id){
+
+countdowncheck();
+
+$.getJSON("http://hsduell2014.net84.net/fragengeber.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&fach="+fach+"&id="+id, function(data){
+
+localStorage.setItem('fragen', JSON.stringify(data));
+
+
+for (i=0; i<data.length; i++){
+var frag=i+1;
+$('#frag'+frag).text(data[i].frage);
+}
+
+$('#fragencon1 #ant1').text(data[0].antwort1);
+$('#fragencon1 #ant2').text(data[0].antwort2);
+$('#fragencon1 #ant3').text(data[0].antwort3);
+$('#fragencon1 #ant4').text(data[0].antwort4);
+
+$('#fragencon2 #ant1').text(data[1].antwort1);
+$('#fragencon2 #ant2').text(data[1].antwort2);
+$('#fragencon2 #ant3').text(data[1].antwort3);
+$('#fragencon2 #ant4').text(data[1].antwort4);
+
+$('#fragencon3 #ant1').text(data[2].antwort1);
+$('#fragencon3 #ant2').text(data[2].antwort2);
+$('#fragencon3 #ant3').text(data[2].antwort3);
+$('#fragencon3 #ant4').text(data[2].antwort4);
+
+
+});
+localStorage.setItem('opponentid', id);
+$.mobile.changePage('#pagefour', {reverse: false, changeHash: false});
+
+
+}
+
+function answercheck(id){
+
+var antworten= JSON.parse(localStorage.getItem('fragen'));
+
+
+if (zaehler==1){
+
+if (id==antworten[0].richtige_antwort){
+alert('Richtig');
+punkte++;
+}
+
+else alert('Falsch');
+
+zaehler++;
+$.mobile.changePage('#pagefour2', {reverse: false, changeHash: false});
+
+
+countdowncheck();
+
+
+}
+
+else if (zaehler==2){
+
+if (id==antworten[1].richtige_antwort){
+alert('Richtig');
+punkte++;
+}
+
+else alert('Falsch');
+
+zaehler++;
+$.mobile.changePage('#pagefour3', {reverse: false, changeHash: false});
+
+countdowncheck();
+
+}
+
+else if (zaehler==3){
+
+if (id==antworten[2].richtige_antwort){
+alert('Richtig');
+punkte++;
+}
+
+else alert('Falsch');
+
+zaehler=1;
+$.getJSON("http://hsduell2014.net84.net/updateopponent.php?callback=?&user="+localStorage.userauth+"&pass="+localStorage.passauth+"&id="+localStorage.getItem('opponentid')+"&punkte="+punkte, function(data){
+
+
+
+});
+punkte=0;
+$.mobile.changePage('#pagetwo', {reverse: false, changeHash: false});
+
+}
+
+
+}
+
+
+
+
+	
+	
+</script>
+
+<title>HSQuiz</title>
+<link rel="stylesheet" type="text/css" href="css.css" ></link>
+</head >
+
+<body  onLoad="beimstart()">
+
+	<div data-role="page" id="pageone" >
+		<div data-role="header">
+			<h1>Anmelden</h1>
+		</div>
+
+		<div data-role="main" class="ui-content">
+		
+			<p>Username</p>
+			<input type="text" id="user"></input>
+			<p>Password</p>
+			<input type="password" id="pass1"></input>
+			<button onClick="proof()">Anmelden</button>
+			<button onClick="window.location.replace('register.html')">Register</button>
+			<div id="myPopup" data-role="popup" id="popupBasic">
+				<p id="meldung"><p>
+			</div>
+		</div>
+	</div> 
+	
+	<div data-role="page" id="pagetwo">
+		<div data-role="header" >
+		<a onClick="window.location.reload()" class="ui-btn ui-icon-refresh ui-btn-icon-left">Refresh</a>
+			<h1>HSDuell</h1>
+		</div>
+
+		<div data-role="main" id="buttoncon" class="ui-content">
+			
+			<button id="search" onClick="searchop()">Spieler suchen</button>
+			<div id="gegnercon"></div>
+			
+	
+		</div>
+		
+		
+		
+	</div> 
+	
+	<div data-role="page" id="pagethree">
+		<div data-role="header">
+			<h1>HSDuell</h1>
+		</div>
+
+		<div data-role="main" id="subjectcon" class="ui-content">
+			<button id="fach1"></button>
+			<button id="fach2"></button>
+			<button id="fach3"></button>
+			
+	
+		</div>
+	</div> 
+	
+	<div data-role="page" id="pagefour">
+		<div data-role="header">
+			<h1>HSDuell</h1>
+		</div>
+
+		<div data-role="main" id="fragencon1" class="ui-content">
+			<h1 id="frag1">Die Frage aller Fragen</h1>
+			<button id="ant1" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant2" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant3" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant4" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<h2 class="time"></h2>
+	   </div>
+	   
+	   
+	</div> 
+	
+	<div data-role="page" id="pagefour2">
+		<div data-role="header">
+			<h1>HSDuell</h1>
+		</div>
+
+		<div data-role="main" id="fragencon2" class="ui-content">
+			<h1 id="frag2">Die Frage aller Fragen</h1>
+			<button id="ant1" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant2" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant3" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant4" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<h2 class="time"></h2>
+	   </div>
+	   
+	   
+	</div> 
+	
+	<div data-role="page" id="pagefour3">
+		<div data-role="header">
+			<h1>HSDuell</h1>
+		</div>
+
+		<div data-role="main" id="fragencon3" class="ui-content">
+			<h1 id="frag3">Die Frage aller Fragen</h1>
+			<button id="ant1" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant2" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant3" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<button id="ant4" onClick="answercheck($(this).attr('id')), countdownstopper=true"></button>
+			<h2 class="time"></h2>
+	   </div>
+	   
+	   
+	</div> 
+	
+	<div data-role="page" id="gamecontent">
+		<div data-role="header">
+			<a href="#pagetwo" class="ui-btn ui-icon-home ui-btn-icon-left">Home</a>
+			<h1>HSDuell</h1>
+			
+		</div>
+
+		<div data-role="main" id="gamecontainer"  class="ui-content">
+			<ul>
+			<li id="ich"><p>Nino</p></li>
+			<li class="runde"><p>2</p></li>
+			<li id="gegner"><p>Mile</p></li>
+			</ul>
+			<button id="play" onClick="spielen($('.runde').attr('id'))">Play</button>
+	   </div>
+	   
+	   
+	</div> 
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+ 
+
+</body>
+</html>
